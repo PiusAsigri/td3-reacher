@@ -1,4 +1,4 @@
-# TD3-2 — Robotic Arm Target Reaching
+# TD3-2 - Robotic Arm Target Reaching
 
 Deep RL group project (DSCD 614). A **TD3** agent is trained to drive the
 fingertip of a two-jointed arm to a randomly spawned target in Gymnasium's
@@ -7,9 +7,9 @@ MuJoCo **Reacher-v5**, and is compared under a controlled protocol against a
 (a performance floor).
 
 > The algorithm implementations (TD3, DDPG, replay buffer) come from
-> Stable-Baselines3. Everything else — the environment wrapper, the reward
+> Stable-Baselines3. Everything else - the environment wrapper, the reward
 > function, both baselines' harness integration, the evaluation harness,
-> and all logging/plotting/analysis — is the group's own work.
+> and all logging/plotting/analysis - is the group's own work.
 
 ---
 
