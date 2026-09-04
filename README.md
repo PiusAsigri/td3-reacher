@@ -150,10 +150,7 @@ in the report and in `Hyperparameters_and_Seeds`.
 
 ## 6. Model weights
 
-Trained weights are written to `models/*.zip`. If they exceed the repository
-size limit, attach them to a **GitHub release** and link the release here:
-
-> Model weights release: `<add release URL after upload>`
+Trained agent weights (used for the demonstration) are committed under models/ - one .zip per algorithm and seed (e.g. TD3_seed0.zip). They are small (~2–3 MB each), so they live directly in the repository; no external download is required.
 
 ## 7. Attribution
 
