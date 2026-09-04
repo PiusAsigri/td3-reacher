@@ -1,0 +1,26 @@
+[
+  {
+    "metric": "return",
+    "diff": -0.04864534329150949,
+    "combined_std": 0.23080171272983296,
+    "exceeds_spread": false
+  },
+  {
+    "metric": "final_distance",
+    "diff": 0.00035730894041883544,
+    "combined_std": 0.0038212907874175584,
+    "exceeds_spread": false
+  },
+  {
+    "metric": "success",
+    "diff": -0.011111111111111072,
+    "combined_std": 0.01924500897298752,
+    "exceeds_spread": false
+  },
+  {
+    "metric": "control_effort",
+    "diff": -0.0019917529398915945,
+    "combined_std": 0.007105819127694206,
+    "exceeds_spread": false
+  }
+]

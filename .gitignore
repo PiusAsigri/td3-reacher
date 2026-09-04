@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.DS_Store
+.ipynb_checkpoints/
+# NOTE: logs/, results/ and figures/ are intentionally NOT ignored — the raw
+# logs must be committed because figures are only credited if they trace to
+# committed logs. models/*.zip may be large; if they exceed the repo limit,
+# attach them to a GitHub release and link in the README instead (see README).
