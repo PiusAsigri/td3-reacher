@@ -22,6 +22,22 @@ for _d in (LOG_DIR, MODEL_DIR, FIG_DIR, RESULTS_DIR):
     _d.mkdir(exist_ok=True)
 
 
+def set_artifact_dirs(root: Path) -> None:
+    """Redirect logs/models/figures/results (used by --smoke so assessed artifacts stay intact).
+
+    Must be called *before* importing src.train / src.evaluate / src.plots, because
+    those modules bind LOG_DIR etc. at import time.
+    """
+    global LOG_DIR, MODEL_DIR, FIG_DIR, RESULTS_DIR
+    root = Path(root)
+    LOG_DIR = root / "logs"
+    MODEL_DIR = root / "models"
+    FIG_DIR = root / "figures"
+    RESULTS_DIR = root / "results"
+    for d in (LOG_DIR, MODEL_DIR, FIG_DIR, RESULTS_DIR):
+        d.mkdir(parents=True, exist_ok=True)
+
+
 # ---------------------------------------------------------------------------
 # Environment
 # ---------------------------------------------------------------------------
@@ -37,12 +53,17 @@ class EnvConfig:
     # We keep this False for the headline result so that training is not
     # confounded by an altered termination structure (see report, Methodology).
     success_termination: bool = False
-    # Reward component weights. Defaults match the Reacher-v5 defaults so the
-    # headline agent is comparable with the literature; exposed here so the
-    # reward-shaping ablation can vary them.
+    # Reward component weights. These are a GROUP DESIGN CHOICE.
+    # Do not change them after seeing evaluation numbers: that is HARKing.
+    #
+    # Verified against gymnasium 1.3.0 on the machine that ran verify_env.py:
+    # ReacherEnv.__init__ defaults are reward_dist_weight=1, reward_control_weight=1.
+    # The Gymnasium docstring still says control weight 0.1; the constructor
+    # default is 1. Headline runs in this repo used control weight 0.1, which
+    # is *not* the installed native default. State that honestly in the report.
     reward_dist_weight: float = 1.0
     reward_control_weight: float = 0.1
-    success_bonus: float = 0.0  # optional terminal bonus for reaching target
+    success_bonus: float = 0.0  # optional bonus; 0 in the headline configuration
 
 
 # ---------------------------------------------------------------------------
@@ -52,8 +73,8 @@ class EnvConfig:
 class TrainConfig:
     total_timesteps: int = 50_000   
     learning_rate: float = 1e-3
-    buffer_size: int = 200_000
-    learning_starts: int = 1_000
+    buffer_size: int = 200_000        # SB3 2.9.0 default is 1_000_000
+    learning_starts: int = 1_000      # SB3 2.9.0 default is 100
     batch_size: int = 256
     tau: float = 0.005
     # gamma chosen against the effective horizon: 1/(1-0.98) = 50 steps, which
@@ -61,6 +82,7 @@ class TrainConfig:
     gamma: float = 0.98
     train_freq: int = 1
     gradient_steps: int = 1
+    # Differs from SB3 2.9.0 MlpPolicy default [400, 300]; declare in the report.
     net_arch: tuple = (256, 256)
     exploration_sigma: float = 0.1   # std of Gaussian action noise (training only)
 

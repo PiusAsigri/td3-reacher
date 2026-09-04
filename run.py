@@ -8,7 +8,7 @@ Reproduces the headline result from a clean environment:
     python run.py --train      # training only
     python run.py --eval       # evaluation only (requires saved models)
     python run.py --plot       # figures only (requires committed logs)
-    python run.py --smoke      # 2k-step end-to-end check that nothing is broken
+    python run.py --smoke      # 2k-step check; writes under scratch/smoke/ only
 
 Seeds, hyperparameters and the evaluation protocol are fixed in src/config.py.
 """
@@ -16,7 +16,7 @@ from __future__ import annotations
 import argparse
 import json
 
-from src.config import CFG, RESULTS_DIR
+from src.config import CFG, ROOT, set_artifact_dirs
 
 
 def _print_headline(aggregate: dict):
@@ -41,7 +41,9 @@ def main():
     p.add_argument("--train", action="store_true")
     p.add_argument("--eval", action="store_true")
     p.add_argument("--plot", action="store_true")
-    p.add_argument("--smoke", action="store_true")
+    p.add_argument("--smoke", action="store_true",
+                   help="tiny train/eval/plot into scratch/smoke/; does not "
+                        "overwrite assessed logs/, models/, or results/")
     p.add_argument("--parallel", nargs="?", type=int, const=0, default=None,
                    metavar="N",
                    help="train runs concurrently across CPU cores. "
@@ -50,21 +52,32 @@ def main():
     args = p.parse_args()
 
     if args.smoke:
-        # Fast end-to-end path with tiny budgets to prove the pipeline runs.
-        import dataclasses
-        from src import train as train_mod, evaluate as eval_mod, plots as plot_mod
+        # Tiny end-to-end check. Redirect artifacts FIRST, then import the
+        # train/eval/plot modules (they bind log paths at import time).
+        scratch = ROOT / "scratch" / "smoke"
+        set_artifact_dirs(scratch)
+        print(f"[smoke] writing under {scratch} "
+              "(assessed logs/models/results are not touched)")
         object.__setattr__(CFG.train, "total_timesteps", 2000)
         object.__setattr__(CFG.train, "learning_starts", 200)
         object.__setattr__(CFG.eval, "n_eval_episodes", 3)
         object.__setattr__(CFG, "seeds", (0, 1))
         object.__setattr__(CFG, "algorithms", ("TD3", "DDPG"))
+        from src import train as train_mod, evaluate as eval_mod, plots as plot_mod
         train_mod.train_all()
         out = eval_mod.evaluate_all()
         plot_mod.plot_training_curves()
         _print_headline(out["aggregate"])
+        print(f"[smoke] done. Inspect {scratch}; do not commit it.")
         return
 
-    do_all = args.all or not (args.train or args.eval or args.plot)
+    if not (args.all or args.train or args.eval or args.plot):
+        p.print_help()
+        print("\nRefusing to run the full 50k-step job without an explicit flag.")
+        print("Use: python run.py --all | --train | --eval | --plot | --smoke")
+        return
+
+    do_all = args.all
     if args.train or do_all:
         if args.parallel is not None:
             from src.train import train_all_parallel

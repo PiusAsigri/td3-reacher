@@ -15,9 +15,12 @@ and all logging/plotting/analysis - is the group's own work.
 
 ## 1. Installation
 
-Requires **Python 3.10+** (`python3 --version`). Create a virtual environment,
-then install the pinned dependencies. After the venv is **activated**, `python`
-and `pip` refer to the venv interpreter on every platform.
+Requires **Python 3.10–3.12**. **Python 3.14 is not verified** for Gymnasium /
+Stable-Baselines3 / Torch on this project; on macOS use Homebrew `python3.11`
+if `python3` is 3.14.
+
+Create a virtual environment, then install the **portable** pins (no CUDA).
+After the venv is **activated**, `python` and `pip` refer to the venv.
 
 **Linux (Ubuntu/Debian)**
 ```bash
@@ -26,43 +29,48 @@ python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-**macOS** (Python 3.10+ from python.org or `brew install python@3.12`)
+**macOS** (prefer `python3.11` from Homebrew if the default is 3.14)
 ```bash
-python3 -m venv .venv && source .venv/bin/activate
+python3.11 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
 **Windows (PowerShell)**
 ```powershell
-py -m venv .venv; .venv\Scripts\Activate.ps1
+py -3.11 -m venv .venv; .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
-MuJoCo ships as a self-contained wheel via `gymnasium[mujoco]`; no separate
-MuJoCo binary or licence is required. Verify the environment loads:
+`requirements.txt` is a CPU/macOS-safe freeze. A historical Linux+NVIDIA
+`pip freeze` is kept as `requirements-cuda-linux.txt` for audit; installing
+that file on macOS will fail.
+
+MuJoCo ships as a wheel; no separate MuJoCo binary or licence is required.
+Verify against the **installed** package, not against memory or this README:
 
 ```bash
-python -c "import gymnasium as gym; gym.make('Reacher-v5'); print('ok')"
+python verify_env.py
 ```
 
-> **On-screen rollout** (`render_mode="human"`, used only for the demonstration
-> video) needs a display and OpenGL. It works on a desktop OS out of the box; on
-> a headless Linux server, render to file with `render_mode="rgb_array"` instead.
-> Training and evaluation never need a display.
+> **On-screen rollout** (`render_mode="human"`, demonstration video only)
+> needs a display and OpenGL. Training and evaluation never need a display.
 
-After confirming training runs on your machine, regenerate the exact pins:
+After a successful install on the machine that will produce **assessed** runs,
+commit a lock file from that machine:
 
 ```bash
-pip freeze > requirements.txt
+pip freeze > requirements-lock-$(python -c "import sys,platform; print(platform.system()+'-'+sys.platform)").txt
 ```
 
-**Troubleshooting (Linux).**
-- `python: command not found` — use `python3` to create the venv; once the venv
-  is **activated**, `python` and `pip` exist inside it.
+**Troubleshooting (Linux / macOS).**
+- Default `python3` is 3.14 — create the venv with `python3.11` (this project
+  was verified on 3.11.14). Do not assume 3.14 wheels exist for SB3/Torch.
+- `python: command not found` — use `python3` / `python3.11` to create the venv;
+  once the venv is **activated**, `python` and `pip` exist inside it.
 - `.venv/bin/pip: No such file or directory` — the venv was created before
   `python3-venv` was installed. Fix it with `python -m ensurepip --upgrade`,
-  or recreate: `deactivate; rm -rf .venv; python3 -m venv .venv; source .venv/bin/activate`.
-  Deleting `.venv` is harmless since logs and results live in the
+  or recreate: `deactivate; rm -rf .venv; python3.11 -m venv .venv; source .venv/bin/activate`.
+  Deleting `.venv` loses nothing — your code, logs and results live in the
   project folder, not the venv.
 
 ## 2. Reproduce the headline result (clean environment)
@@ -84,7 +92,7 @@ Individual stages:
 python run.py --train    # training only  -> logs/, models/
 python run.py --eval     # evaluation only -> results/   (needs models/)
 python run.py --plot     # figures only    -> figures/   (needs logs/)
-python run.py --smoke    # ~1-min end-to-end check that the pipeline runs
+python run.py --smoke    # tiny check; writes under scratch/smoke/ only
 ```
 
 **Parallel training (use all your cores).** The six training runs
@@ -123,21 +131,24 @@ traces to raw data in this repository.
 
 ```
 td3_reacher/
-├── run.py                 # single entry point
-├── requirements.txt       # pinned dependencies
+├── run.py                      # single entry point
+├── verify_env.py               # print Reacher-v5 facts from installed packages
+├── requirements.txt            # portable pins (no CUDA)
+├── requirements-cuda-linux.txt # historical Linux+NVIDIA freeze (audit only)
+├── AI_Use_Declaration.md
 ├── src/
-│   ├── config.py          # ALL hyperparameters, seeds, paths (single source of truth)
-│   ├── env.py             # Reacher wrapper: distance/effort in info, success logic
-│   ├── reward.py          # reward function with configurable component weights
-│   ├── metrics.py         # per-episode metrics + cross-seed aggregation (mean±std)
-│   ├── train.py           # SB3 TD3/DDPG training + CSV logging of training return
-│   ├── baseline_random.py # random continuous controller (performance floor)
-│   ├── evaluate.py        # held-out deterministic evaluation harness
-│   └── plots.py           # training-curve figure from committed logs
-├── logs/                  # raw training logs (COMMITTED after runs)
-├── models/                # saved agent weights (see note below)
-├── results/               # evaluation tables (COMMITTED after runs)
-└── figures/               # generated figures
+│   ├── config.py               # ALL hyperparameters, seeds, paths
+│   ├── env.py                  # Reacher wrapper
+│   ├── reward.py               # reward weights
+│   ├── metrics.py              # per-episode metrics + cross-seed aggregation
+│   ├── train.py                # SB3 TD3/DDPG training + CSV logging
+│   ├── baseline_random.py      # random continuous controller
+│   ├── evaluate.py             # held-out deterministic evaluation
+│   └── plots.py                # figures from committed logs
+├── logs/                       # raw training logs (COMMITTED)
+├── models/                     # saved weights
+├── results/                    # evaluation tables (COMMITTED)
+└── figures/                    # generated figures
 ```
 
 ## 5. Configuration
@@ -146,7 +157,7 @@ All experiment settings live in `src/config.py`. The seeds actually run are
 `ExperimentConfig.seeds`; exactly these values are documented. Hyperparameters are held
 constant across seeds and across TD3/DDPG except for the three TD3-only terms
 (`policy_delay`, `target_policy_noise`, `target_noise_clip`), as declared
-in the report and in `Hyperparameters_and_Seeds`.
+in the report, in `Hyperparameters_and_Seeds`, and in the table in section 8.
 
 ## 6. Model weights
 
@@ -157,4 +168,39 @@ Trained agent weights (used for the demonstration) are committed under models/ -
 - Stable-Baselines3 (TD3, DDPG, replay buffer) — https://github.com/DLR-RM/stable-baselines3
 - Gymnasium / MuJoCo Reacher-v5 — https://gymnasium.farama.org/environments/mujoco/reacher/
 
-Use of generative AI is declared in `AI_Use_Declaration`.
+Use of generative AI is declared in `AI_Use_Declaration.md`.
+
+## 8. Hyperparameters vs Stable-Baselines3 2.9.0 defaults
+
+Verified against the installed `stable_baselines3==2.9.0` constructors (re-check
+with `python verify_env.py` after any upgrade). Only rows that **differ** from
+the library default, plus the three TD3-only knobs, belong in the report table.
+Do not present library defaults as if they were a search.
+
+| Setting | This project (`src/config.py`) | SB3 2.9.0 TD3 default | Same? |
+|---|---|---|---|
+| `learning_rate` | `1e-3` | `0.001` | yes |
+| `buffer_size` | `200_000` | `1_000_000` | **no** |
+| `learning_starts` | `1_000` | `100` | **no** |
+| `batch_size` | `256` | `256` | yes |
+| `tau` | `0.005` | `0.005` | yes |
+| `gamma` | `0.98` | `0.99` | **no** (justified vs 50-step episode) |
+| `train_freq` / `gradient_steps` | `1` / `1` | `1` / `1` | yes |
+| `net_arch` (MlpPolicy) | `[256, 256]` | `[400, 300]` | **no** |
+| action noise | `NormalActionNoise(σ=0.1)` | `None` | **no** |
+| `policy_delay` (TD3 only) | `2` | `2` | yes |
+| `target_policy_noise` (TD3 only) | `0.2` | `0.2` | yes |
+| `target_noise_clip` (TD3 only) | `0.5` | `0.5` | yes |
+
+Held constant across seeds and across TD3/DDPG except the three TD3-only terms.
+
+**Do not retune these after looking at evaluation success rates.** If a search
+was done, document range, which seed was used, and that evaluation episodes
+were not used for selection.
+
+## 9. What `--smoke` does not prove
+
+`python run.py --smoke` trains 2,000 steps on two seeds and writes under
+`scratch/smoke/`. It must not overwrite `logs/`, `models/`, or `results/`.
+Smoke output is not a headline result. Headline numbers come from the
+committed 50,000-step logs and `python run.py --eval`.
