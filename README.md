@@ -1,4 +1,4 @@
-# TD3-2 — Robotic Arm Target Reaching
+# TD3-2 - Robotic Arm Target Reaching
 
 Deep RL group project (DSCD 614). A **TD3** agent is trained to drive the
 fingertip of a two-jointed arm to a randomly spawned target in Gymnasium's
@@ -6,10 +6,10 @@ MuJoCo **Reacher-v5**, and is compared under a controlled protocol against a
 **DDPG** baseline (the required baseline) and a random continuous controller
 (a performance floor).
 
-> The algorithm implementations (TD3, DDPG, replay buffer) come from
-> Stable-Baselines3. Everything else — the environment wrapper, the reward
-> function, both baselines' harness integration, the evaluation harness,
-> and all logging/plotting/analysis — is the group's own work.
+The algorithm implementations (TD3, DDPG, replay buffer) come from
+Stable-Baselines3. Everything else - the environment wrapper, the reward
+function, both baselines' harness integration, the evaluation harness,
+and all logging/plotting/analysis - is the group's own work.
 
 ---
 
@@ -62,7 +62,7 @@ pip freeze > requirements.txt
 - `.venv/bin/pip: No such file or directory` — the venv was created before
   `python3-venv` was installed. Fix it with `python -m ensurepip --upgrade`,
   or recreate: `deactivate; rm -rf .venv; python3 -m venv .venv; source .venv/bin/activate`.
-  Deleting `.venv` loses nothing — your code, logs and results live in the
+  Deleting `.venv` is harmless since logs and results live in the
   project folder, not the venv.
 
 ## 2. Reproduce the headline result (clean environment)
@@ -76,7 +76,7 @@ methods through the shared harness, writes the aggregate results table, and
 regenerates the training-curve figure. On CPU the default budget
 (50k steps × 3 seeds × 2 algorithms) takes roughly 15–60 minutes depending on
 hardware; reduce `total_timesteps` in `src/config.py` if compute is limited
-(reduce steps, not seeds — and state the constraint in the report).
+(reduce steps, not seeds).
 
 Individual stages:
 
@@ -143,17 +143,14 @@ td3_reacher/
 ## 5. Configuration
 
 All experiment settings live in `src/config.py`. The seeds actually run are
-`ExperimentConfig.seeds`; report exactly these values. Hyperparameters are held
+`ExperimentConfig.seeds`; exactly these values are documented. Hyperparameters are held
 constant across seeds and across TD3/DDPG except for the three TD3-only terms
-(`policy_delay`, `target_policy_noise`, `target_noise_clip`), which are declared
+(`policy_delay`, `target_policy_noise`, `target_noise_clip`), as declared
 in the report and in `Hyperparameters_and_Seeds`.
 
 ## 6. Model weights
 
-Trained weights are written to `models/*.zip`. If they exceed the repository
-size limit, attach them to a **GitHub release** and link the release here:
-
-> Model weights release: `<add release URL after upload>`
+Trained agent weights (used for the demonstration) are committed under models/ - one .zip per algorithm and seed (e.g. TD3_seed0.zip). They are small (~2–3 MB each), so they live directly in the repository; no external download is required.
 
 ## 7. Attribution
 
