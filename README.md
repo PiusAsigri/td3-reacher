@@ -6,10 +6,10 @@ MuJoCo **Reacher-v5**, and is compared under a controlled protocol against a
 **DDPG** baseline (the required baseline) and a random continuous controller
 (a performance floor).
 
-> The algorithm implementations (TD3, DDPG, replay buffer) come from
-> Stable-Baselines3. Everything else - the environment wrapper, the reward
-> function, both baselines' harness integration, the evaluation harness,
-> and all logging/plotting/analysis - is the group's own work.
+The algorithm implementations (TD3, DDPG, replay buffer) come from
+Stable-Baselines3. Everything else - the environment wrapper, the reward
+function, both baselines' harness integration, the evaluation harness,
+and all logging/plotting/analysis - is the group's own work.
 
 ---
 
