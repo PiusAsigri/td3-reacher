@@ -194,13 +194,4 @@ Do not present library defaults as if they were a search.
 
 Held constant across seeds and across TD3/DDPG except the three TD3-only terms.
 
-**Do not retune these after looking at evaluation success rates.** If a search
-was done, document range, which seed was used, and that evaluation episodes
-were not used for selection.
-
-## 9. What `--smoke` does not prove
-
-`python run.py --smoke` trains 2,000 steps on two seeds and writes under
-`scratch/smoke/`. It must not overwrite `logs/`, `models/`, or `results/`.
-Smoke output is not a headline result. Headline numbers come from the
-committed 50,000-step logs and `python run.py --eval`.
+**Do not retune these after looking at evaluation success rates.** 
